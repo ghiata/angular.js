@@ -47,7 +47,7 @@ In Angular applications, you move the job of filling page templates with data fr
 
 ### Testing
 
-* **Unit testing:** [Using Karma (video)](http://www.youtube.com/watch?v=YG5DEzaQBIc), {@link guide/dev_guide.unit-testing Unit testing}, {@link guide/dev_guide.services.testing_services Testing services}, [Karma in Webstorm](http://blog.jetbrains.com/webstorm/2013/10/running-javascript-tests-with-karma-in-webstorm-7/)
+* **Unit testing:** [Using Karma (video)](http://www.youtube.com/watch?v=YG5DEzaQBIc), {@link guide/unit-testing Unit testing}, {@link guide/services#unit-testing Testing services}, [Karma in Webstorm](http://blog.jetbrains.com/webstorm/2013/10/running-javascript-tests-with-karma-in-webstorm-7/)
 * **Scenario testing:** [Protractor](https://github.com/angular/protractor)
 
 ## Specific Topics
@@ -57,6 +57,7 @@ In Angular applications, you move the job of filling page templates with data fr
 * **Other Languages:** [CoffeeScript](http://www.coffeescriptlove.com/2013/08/angularjs-and-coffeescript-tutorials.html), [Dart](https://github.com/angular/angular.dart.tutorial/wiki)
 * **Realtime: **[Socket.io](http://www.creativebloq.com/javascript/angularjs-collaboration-board-socketio-2132885), [OmniBinder](https://github.com/jeffbcross/omnibinder)
 * **Visualization:** [SVG](http://gaslight.co/blog/angular-backed-svgs), [D3.js](http://www.ng-newsletter.com/posts/d3-on-angular.html)
+* **Local Storage and session:** [ngStorage](https://github.com/gsklee/ngStorage)
 
 ## Tools
 
@@ -69,17 +70,20 @@ In Angular applications, you move the job of filling page templates with data fr
 
 This is a short list of libraries with specific support and documentation for working with Angular.  You can find a full list of all known Angular external libraries at [ngmodules.org](http://ngmodules.org/).
 
-* **Internationalization:** [angular-translate](http://pascalprecht.github.io/angular-translate/), [angular-gettext](http://angular-gettext.rocketeer.be/)
+* **Internationalization:** [angular-translate](http://angular-translate.github.io), [angular-gettext](http://angular-gettext.rocketeer.be/), [angular-localization](http://doshprompt.github.io/angular-localization/)
 * **RESTful services:** [Restangular](https://github.com/mgonto/restangular)
 * **SQL and NoSQL backends:** [BreezeJS](http://www.breezejs.com/), [AngularFire](http://angularfire.com/)
-* **UI Widgets: **[KendoUI](http://kendo-labs.github.io/angular-kendo/#/), [UI Bootstrap](http://angular-ui.github.io/bootstrap/), [Wijmo](http://wijmo.com/tag/angularjs-2/)
+* **UI Widgets: **[KendoUI](http://kendo-labs.github.io/angular-kendo/#/), [UI Bootstrap](http://angular-ui.github.io/bootstrap/), [Wijmo](http://wijmo.com/tag/angularjs-2/), [ngTagsInput](https://github.com/mbenford/ngTagsInput)
+* **Advanced Routing:** [UI-Router](https://github.com/angular-ui/ui-router)
+* **Maps:** [UI-Map (Google Maps)](https://github.com/angular-ui/ui-map)
 
 ## Deployment
 
 ### General
 
-* **Javascript minification: **[Background](http://thegreenpizza.github.io/2013/05/25/building-minification-safe-angular.js-applications/), [ngmin automation tool](http://www.thinkster.io/pick/XlWneEZCqY/angularjs-ngmin)
-* **Tracking:** [Angularyitcs (Google Analytics)](http://ngmodules.org/modules/angularytics), [Logging Client-Side Errors](http://www.bennadel.com/blog/2542-Logging-Client-Side-Errors-With-AngularJS-And-Stacktrace-js.htm)
+* **Docs Page:** {@link guide/production Running an AngularJS App in Production}
+* **Javascript minification: **[Background](http://thegreenpizza.github.io/2013/05/25/building-minification-safe-angular.js-applications/), [ng-annotate automation tool](https://github.com/olov/ng-annotate)
+* **Analytics and Logging:** [Angularyitcs (Google Analytics)](http://ngmodules.org/modules/angularytics), [Angulartics (Analytics)](https://github.com/luisfarzati/angulartics), [Logging Client-Side Errors](http://www.bennadel.com/blog/2542-Logging-Client-Side-Errors-With-AngularJS-And-Stacktrace-js.htm)
 * **SEO:** [By hand](http://www.yearofmoo.com/2012/11/angularjs-and-seo.html), [prerender.io](http://prerender.io/), [Brombone](http://www.brombone.com/), [SEO.js](http://getseojs.com/), [SEO4Ajax](http://www.seo4ajax.com/)
 
 ### Server-Specific
@@ -101,6 +105,7 @@ This is a short list of libraries with specific support and documentation for wo
 * [Recipes With AngularJS](http://www.amazon.co.uk/Recipes-Angular-js-Frederik-Dietz-ebook/dp/B00DK95V48) by Frederik Dietz
 * [Developing an AngularJS Edge](http://www.amazon.com/Developing-AngularJS-Edge-Christopher-Hiller-ebook/dp/B00CJLFF8K) by Christopher Hiller
 * [ng-book: The Complete Book on AngularJS](http://ng-book.com/) by Ari Lerner
+* [AngularJS : Novice to Ninja](http://www.amazon.in/AngularJS-Novice-Ninja-Sandeep-Panda/dp/0992279453) by Sandeep Panda
 
 ###Videos:
 * [egghead.io](http://egghead.io/)
@@ -110,6 +115,7 @@ This is a short list of libraries with specific support and documentation for wo
 * **Free online:**
   [thinkster.io](http://thinkster.io),
   [CodeAcademy](http://www.codecademy.com/courses/javascript-advanced-en-2hJ3J/0/1)
+  [CodeSchool](https://www.codeschool.com/courses/shaping-up-with-angular-js)
 * **Paid online:**
   [Pluralsite (3 courses)](http://www.pluralsight.com/training/Courses/Find?highlight=true&searchTerm=angularjs),
   [Tuts+](https://tutsplus.com/course/easier-js-apps-with-angular/),

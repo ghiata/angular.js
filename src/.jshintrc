@@ -1,20 +1,5 @@
 {
-  "bitwise": true,
-  "immed": true,
-  "newcap": true,
-  "noarg": true,
-  "noempty": true,
-  "nonew": true,
-  "trailing": true,
-  "maxlen": 200,
-  "boss": true,
-  "eqnull": true,
-  "expr": true,
-  "globalstrict": true,
-  "laxbreak": true,
-  "loopfunc": true,
-  "sub": true,
-  "undef": true,
+  "extends": "../.jshintrc-base",
   "browser": true,
   "globals": {
     /* auto/injector.js */
@@ -34,11 +19,11 @@
     "nodeName_": false,
     "uid": false,
 
+    "REGEX_STRING_REGEXP" : false,
     "lowercase": false,
     "uppercase": false,
     "manualLowercase": false,
     "manualUppercase": false,
-    "nodeName_": false,
     "isArrayLike": false,
     "forEach": false,
     "sortedKeys": false,
@@ -64,14 +49,14 @@
     "isWindow": false,
     "isScope": false,
     "isFile": false,
+    "isBlob": false,
     "isBoolean": false,
+    "isPromiseLike": false,
     "trim": false,
     "isElement": false,
     "makeMap": false,
-    "map": false,
     "size": false,
     "includes": false,
-    "indexOf": false,
     "arrayRemove": false,
     "isLeafNode": false,
     "copy": false,
@@ -84,7 +69,6 @@
     "toJsonReplacer": false,
     "toJson": false,
     "fromJson": false,
-    "toBoolean": false,
     "startingTag": false,
     "tryDecodeURIComponent": false,
     "parseKeyValue": false,
@@ -93,13 +77,19 @@
     "encodeUriQuery": false,
     "angularInit": false,
     "bootstrap": false,
+    "getTestability": false,
     "snake_case": false,
     "bindJQuery": false,
     "assertArg": false,
     "assertArgFn": false,
     "assertNotHasOwnProperty": false,
     "getter": false,
-    "getBlockElements": false,
+    "getBlockNodes": false,
+    "createMap": false,
+    "VALIDITY_STATE_PROPERTY": false,
+    "reloadWithDebugInfo": false,
+
+    "skipDestroyOnNextJQueryCleanData": true,
 
     /* filters.js */
     "getFirstThursdayOfYear": false,
@@ -108,7 +98,7 @@
     "version": false,
     "publishExternalAPI": false,
 
-    /* minerr.js */
+    /* minErr.js */
     "minErr": false,
 
     /* loader.js */
@@ -116,6 +106,7 @@
 
     /* jqLite.js */
     "BOOLEAN_ATTR": false,
+    "ALIASED_ATTR": false,
     "jqNextId": false,
     "camelCase": false,
     "jqLitePatchJQueryRemove": false,
@@ -132,11 +123,15 @@
     "jqLiteAddNodes": false,
     "jqLiteController": false,
     "jqLiteInheritedData": false,
+    "jqLiteBuildFragment": false,
+    "jqLiteParseHTML": false,
     "getBooleanAttrName": false,
+    "getAliasedAttrName": false,
     "createEventHandler": false,
     "JQLitePrototype": false,
     "addEventListenerFn": false,
     "removeEventListenerFn": false,
+    "jqLiteIsTextNode": false,
 
     /* apis.js */
     "hashKey": false,

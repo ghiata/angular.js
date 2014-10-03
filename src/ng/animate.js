@@ -81,10 +81,19 @@ var $AnimateProvider = ['$provide', function($provide) {
     return this.$$classNameFilter;
   };
 
-  this.$get = ['$timeout', '$$asyncCallback', function($timeout, $$asyncCallback) {
+  this.$get = ['$$q', '$$asyncCallback', function($$q, $$asyncCallback) {
 
-    function async(fn) {
-      fn && $$asyncCallback(fn);
+    var currentDefer;
+    function asyncPromise() {
+      // only serve one instance of a promise in order to save CPU cycles
+      if (!currentDefer) {
+        currentDefer = $$q.defer();
+        $$asyncCallback(function() {
+          currentDefer.resolve();
+          currentDefer = null;
+        });
+      }
+      return currentDefer.promise;
     }
 
     /**
@@ -110,53 +119,46 @@ var $AnimateProvider = ['$provide', function($provide) {
        *
        * @ngdoc method
        * @name $animate#enter
-       * @function
-       * @description Inserts the element into the DOM either after the `after` element or within
-       *   the `parent` element. Once complete, the done() callback will be fired (if provided).
+       * @kind function
+       * @description Inserts the element into the DOM either after the `after` element or
+       * as the first child within the `parent` element. When the function is called a promise
+       * is returned that will be resolved at a later time.
        * @param {DOMElement} element the element which will be inserted into the DOM
        * @param {DOMElement} parent the parent element which will append the element as
        *   a child (if the after element is not present)
        * @param {DOMElement} after the sibling element which will append the element
        *   after itself
-       * @param {Function=} done callback function that will be called after the element has been
-       *   inserted into the DOM
+       * @return {Promise} the animation callback promise
        */
-      enter : function(element, parent, after, done) {
-        if (after) {
-          after.after(element);
-        } else {
-          if (!parent || !parent[0]) {
-            parent = after.parent();
-          }
-          parent.append(element);
-        }
-        async(done);
+      enter : function(element, parent, after) {
+        after ? after.after(element)
+              : parent.prepend(element);
+        return asyncPromise();
       },
 
       /**
        *
        * @ngdoc method
        * @name $animate#leave
-       * @function
-       * @description Removes the element from the DOM. Once complete, the done() callback will be
-       *   fired (if provided).
+       * @kind function
+       * @description Removes the element from the DOM. When the function is called a promise
+       * is returned that will be resolved at a later time.
        * @param {DOMElement} element the element which will be removed from the DOM
-       * @param {Function=} done callback function that will be called after the element has been
-       *   removed from the DOM
+       * @return {Promise} the animation callback promise
        */
-      leave : function(element, done) {
+      leave : function(element) {
         element.remove();
-        async(done);
+        return asyncPromise();
       },
 
       /**
        *
        * @ngdoc method
        * @name $animate#move
-       * @function
+       * @kind function
        * @description Moves the position of the provided element within the DOM to be placed
-       * either after the `after` element or inside of the `parent` element. Once complete, the
-       * done() callback will be fired (if provided).
+       * either after the `after` element or inside of the `parent` element. When the function
+       * is called a promise is returned that will be resolved at a later time.
        *
        * @param {DOMElement} element the element which will be moved around within the
        *   DOM
@@ -164,84 +166,79 @@ var $AnimateProvider = ['$provide', function($provide) {
        *   inserted into (if the after element is not present)
        * @param {DOMElement} after the sibling element where the element will be
        *   positioned next to
-       * @param {Function=} done the callback function (if provided) that will be fired after the
-       *   element has been moved to its new position
+       * @return {Promise} the animation callback promise
        */
-      move : function(element, parent, after, done) {
+      move : function(element, parent, after) {
         // Do not remove element before insert. Removing will cause data associated with the
         // element to be dropped. Insert will implicitly do the remove.
-        this.enter(element, parent, after, done);
+        return this.enter(element, parent, after);
       },
 
       /**
        *
        * @ngdoc method
        * @name $animate#addClass
-       * @function
-       * @description Adds the provided className CSS class value to the provided element. Once
-       * complete, the done() callback will be fired (if provided).
+       * @kind function
+       * @description Adds the provided className CSS class value to the provided element.
+       * When the function is called a promise is returned that will be resolved at a later time.
        * @param {DOMElement} element the element which will have the className value
        *   added to it
        * @param {string} className the CSS class which will be added to the element
-       * @param {Function=} done the callback function (if provided) that will be fired after the
-       *   className value has been added to the element
+       * @return {Promise} the animation callback promise
        */
-      addClass : function(element, className, done) {
-        className = isString(className) ?
-                      className :
-                      isArray(className) ? className.join(' ') : '';
+      addClass : function(element, className) {
+        className = !isString(className)
+                        ? (isArray(className) ? className.join(' ') : '')
+                        : className;
         forEach(element, function (element) {
           jqLiteAddClass(element, className);
         });
-        async(done);
+        return asyncPromise();
       },
 
       /**
        *
        * @ngdoc method
        * @name $animate#removeClass
-       * @function
+       * @kind function
        * @description Removes the provided className CSS class value from the provided element.
-       * Once complete, the done() callback will be fired (if provided).
+       * When the function is called a promise is returned that will be resolved at a later time.
        * @param {DOMElement} element the element which will have the className value
        *   removed from it
        * @param {string} className the CSS class which will be removed from the element
-       * @param {Function=} done the callback function (if provided) that will be fired after the
-       *   className value has been removed from the element
+       * @return {Promise} the animation callback promise
        */
-      removeClass : function(element, className, done) {
-        className = isString(className) ?
-                      className :
-                      isArray(className) ? className.join(' ') : '';
+      removeClass : function(element, className) {
+        className = !isString(className)
+                        ? (isArray(className) ? className.join(' ') : '')
+                        : className;
         forEach(element, function (element) {
           jqLiteRemoveClass(element, className);
         });
-        async(done);
+        return asyncPromise();
       },
 
       /**
        *
        * @ngdoc method
        * @name $animate#setClass
-       * @function
+       * @kind function
        * @description Adds and/or removes the given CSS classes to and from the element.
-       * Once complete, the done() callback will be fired (if provided).
-       * @param {DOMElement} element the element which will it's CSS classes changed
+       * When the function is called a promise is returned that will be resolved at a later time.
+       * @param {DOMElement} element the element which will have its CSS classes changed
        *   removed from it
        * @param {string} add the CSS classes which will be added to the element
        * @param {string} remove the CSS class which will be removed from the element
-       * @param {Function=} done the callback function (if provided) that will be fired after the
-       *   CSS classes have been set on the element
+       * @return {Promise} the animation callback promise
        */
-      setClass : function(element, add, remove, done) {
-        forEach(element, function (element) {
-          jqLiteAddClass(element, add);
-          jqLiteRemoveClass(element, remove);
-        });
-        async(done);
+      setClass : function(element, add, remove) {
+        this.addClass(element, add);
+        this.removeClass(element, remove);
+        return asyncPromise();
       },
 
-      enabled : noop
+      enabled : noop,
+      cancel : noop
     };
   }];
 }];

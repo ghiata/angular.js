@@ -1,3 +1,5 @@
+'use strict';
+
 beforeEach(function() {
 
   function cssMatcher(presentClasses, absentClasses) {
@@ -23,13 +25,6 @@ beforeEach(function() {
     };
   }
 
-  function indexOf(array, obj) {
-    for ( var i = 0; i < array.length; i++) {
-      if (obj === array[i]) return i;
-    }
-    return -1;
-  }
-
   function isNgElementHidden(element) {
     // we need to check element.getAttribute for SVG nodes
     var hidden = true;
@@ -39,13 +34,20 @@ beforeEach(function() {
       }
     });
     return hidden;
-  };
+  }
 
   this.addMatchers({
     toBeInvalid: cssMatcher('ng-invalid', 'ng-valid'),
     toBeValid: cssMatcher('ng-valid', 'ng-invalid'),
     toBeDirty: cssMatcher('ng-dirty', 'ng-pristine'),
     toBePristine: cssMatcher('ng-pristine', 'ng-dirty'),
+    toBeUntouched: cssMatcher('ng-untouched', 'ng-touched'),
+    toBeTouched: cssMatcher('ng-touched', 'ng-untouched'),
+    toBeAPromise: function() {
+      this.message = valueFn(
+          "Expected object " + (this.isNot ? "not ": "") + "to be a promise");
+      return isPromiseLike(this.actual);
+    },
     toBeShown: function() {
       this.message = valueFn(
           "Expected element " + (this.isNot ? "": "not ") + "to have 'ng-hide' class");
@@ -128,7 +130,7 @@ beforeEach(function() {
 
       this.message = function() {
         if (this.actual.callCount != 1) {
-          if (this.actual.callCount == 0) {
+          if (this.actual.callCount === 0) {
             return [
               'Expected spy ' + this.actual.identity + ' to have been called once with ' +
                 jasmine.pp(expectedArgs) + ' but it was never called.',
@@ -158,7 +160,7 @@ beforeEach(function() {
 
 
     toBeOneOf: function() {
-      return indexOf(arguments, this.actual) !== -1;
+      return Array.prototype.indexOf.call(arguments, this.actual) !== -1;
     },
 
     toHaveClass: function(clazz) {

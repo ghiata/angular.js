@@ -56,7 +56,7 @@ describe('ngView', function() {
   });
 
 
-  it('should instantiate controller for empty template', function() {
+  it('should not instantiate the associated controller when an empty template is downloaded', function() {
     var log = [], controllerScope,
         Ctrl = function($scope) {
           controllerScope = $scope;
@@ -70,11 +70,12 @@ describe('ngView', function() {
     inject(function($route, $rootScope, $templateCache, $location) {
       $templateCache.put('/tpl.html', [200, '', {}]);
       $location.path('/some');
-      $rootScope.$digest();
 
-      expect(controllerScope.$parent).toBe($rootScope);
-      expect(controllerScope).toBe($route.current.scope);
-      expect(log).toEqual(['ctrl-init']);
+      expect(function() {
+        $rootScope.$digest();
+      }).toThrowMinErr('$compile', 'tpload', 'Failed to load template: /tpl.html');
+
+      expect(controllerScope).toBeUndefined();
     });
   });
 
@@ -228,7 +229,7 @@ describe('ngView', function() {
 
       expect(elm.text()).toEqual('include: view: content');
       expect($route.current.templateUrl).toEqual('viewPartial.html');
-      dealoc(elm)
+      dealoc(elm);
     });
   });
 
@@ -237,7 +238,7 @@ describe('ngView', function() {
      'templates were cached', function() {
      //this is a test for a regression that was introduced by making the ng-view cache sync
     function ParentCtrl($scope) {
-       $scope.log.push('parent');
+      $scope.log.push('parent');
     }
 
     module(function($routeProvider) {
@@ -312,7 +313,8 @@ describe('ngView', function() {
       var called = 0;
       // we want to assert only during first watch
       $rootScope.$watch(function() {
-        if (!called++) expect(element.text()).toBe('');
+        if (!called) expect(element.text()).toBe('');
+        called++;
       });
 
       $rootScope.$digest();
@@ -347,7 +349,8 @@ describe('ngView', function() {
 
       expect(element.text()).toBe('bound-value');
       expect(log).toEqual([
-        '$routeChangeStart', 'init-ctrl', '$viewContentLoaded', '$routeChangeSuccess' ]);
+        '$routeChangeStart', 'init-ctrl', '$viewContentLoaded', '$routeChangeSuccess'
+      ]);
     });
   });
 
@@ -441,7 +444,10 @@ describe('ngView', function() {
     module(function($routeProvider) {
       $routeProvider.when('/bar', {templateUrl: 'tpl.html', controller: createController('bar')});
       $routeProvider.when('/foo', {
-          templateUrl: 'tpl.html', controller: createController('foo'), reloadOnSearch: false});
+        templateUrl: 'tpl.html',
+        controller: createController('foo'),
+        reloadOnSearch: false
+      });
     });
 
     inject(function($templateCache, $location, $rootScope) {
@@ -584,7 +590,7 @@ describe('ngView and transcludes', function() {
     });
   });
 
-  it("should compile it's content correctly (although we remove it later)", function() {
+  it("should compile its content correctly (although we remove it later)", function() {
     var testElement;
     module(function($compileProvider, $routeProvider) {
       $routeProvider.when('/view', {template: ' '});
@@ -652,8 +658,8 @@ describe('ngView animations', function() {
 
   beforeEach(module('ngRoute'));
 
-  function html(html) {
-    $rootElement.html(html);
+  function html(content) {
+    $rootElement.html(content);
     body.append($rootElement);
     element = $rootElement.children().eq(0);
     return element;
@@ -679,7 +685,7 @@ describe('ngView animations', function() {
     return function($templateCache) {
       $templateCache.put('/foo.html', [200, '<div>data</div>', {}]);
       $templateCache.put('/bar.html', [200, '<div>data2</div>', {}]);
-    }
+    };
   }));
 
   describe('hooks', function() {
@@ -741,7 +747,8 @@ describe('ngView animations', function() {
         var itemA = animationA.args[0];
 
         expect(itemA).not.toEqual(itemB);
-    }));
+      })
+    );
 
     it('should render ngClass on ngView',
       inject(function($compile, $rootScope, $templateCache, $animate, $location, $timeout) {
@@ -761,13 +768,16 @@ describe('ngView animations', function() {
         var animation = $animate.queue.shift();
         expect(animation.event).toBe('addClass');
 
-        var item = animation.element;
+        item = animation.element;
         expect(item.hasClass('classy')).toBe(true);
 
         $rootScope.klass = 'boring';
         $rootScope.$digest();
 
-        expect($animate.queue.shift().event).toBe('setClass');
+        expect($animate.queue.shift().event).toBe('addClass');
+        expect($animate.queue.shift().event).toBe('removeClass');
+
+        $animate.triggerReflow();
 
         expect(item.hasClass('classy')).toBe(false);
         expect(item.hasClass('boring')).toBe(true);
@@ -785,99 +795,88 @@ describe('ngView animations', function() {
         expect($animate.queue.shift().event).toBe('addClass');
 
         expect(item.hasClass('boring')).toBe(true);
-      }));
+      })
+    );
 
-      it('should not double compile when the route changes', function() {
+    it('should not double compile when the route changes', function() {
 
-        var window;
-        module(function($routeProvider, $animateProvider, $provide) {
-          $routeProvider.when('/foo', {template: '<div ng-repeat="i in [1,2]">{{i}}</div>'});
-          $routeProvider.when('/bar', {template: '<div ng-repeat="i in [3,4]">{{i}}</div>'});
-          $animateProvider.register('.my-animation', function() {
-            return {
-              leave: function(element, done) {
-                done();
-              }
-            };
-          });
-        });
-
-        inject(function($rootScope, $compile, $location, $route, $timeout, $rootElement, $sniffer, $animate) {
-          element = $compile(html('<div><ng:view onload="load()" class="my-animation"></ng:view></div>'))($rootScope);
-          $animate.enabled(true);
-
-          $location.path('/foo');
-          $rootScope.$digest();
-
-          expect($animate.queue.shift().event).toBe('enter'); //ngView
-          expect($animate.queue.shift().event).toBe('enter'); //repeat 1
-          expect($animate.queue.shift().event).toBe('enter'); //repeat 2
-
-          expect(element.text()).toEqual('12');
-
-          $location.path('/bar');
-          $rootScope.$digest();
-
-          expect($animate.queue.shift().event).toBe('enter'); //ngView new
-          expect($animate.queue.shift().event).toBe('leave'); //ngView old
-
-          $rootScope.$digest();
-
-          expect($animate.queue.shift().event).toBe('enter'); //ngRepeat 3
-          expect($animate.queue.shift().event).toBe('enter'); //ngRepeat 4
-
-          expect(element.text()).toEqual('34');
-
-          function n(text) {
-            return text.replace(/\r\n/m, '').replace(/\r\n/m, '');
-          }
+      var window;
+      module(function($routeProvider, $animateProvider, $provide) {
+        $routeProvider.when('/foo', {template: '<div ng-repeat="i in [1,2]">{{i}}</div>'});
+        $routeProvider.when('/bar', {template: '<div ng-repeat="i in [3,4]">{{i}}</div>'});
+        $animateProvider.register('.my-animation', function() {
+          return {
+            leave: function(element, done) {
+              done();
+            }
+          };
         });
       });
 
-      it('should destroy the previous leave animation if a new one takes place', function() {
-        module(function($provide) {
-          $provide.value('$animate', {
-            enabled : function() { return true; },
-            leave : function() {
-              //DOM operation left blank
-            },
-            enter : function(element, parent, after) {
-              angular.element(after).after(element);
-            }
-          });
-        });
-        inject(function ($compile, $rootScope, $animate, $location) {
-          var item;
-          var $scope = $rootScope.$new();
-          element = $compile(html(
-            '<div>' +
-              '<div ng-view></div>' +
-            '</div>'
-          ))($scope);
+      inject(function($rootScope, $compile, $location, $route, $timeout, $rootElement, $sniffer, $animate) {
+        element = $compile(html('<div><ng:view onload="load()" class="my-animation"></ng:view></div>'))($rootScope);
+        $animate.enabled(true);
 
-          $scope.$apply('value = true');
+        $location.path('/foo');
+        $rootScope.$digest();
 
-          $location.path('/bar');
-          $rootScope.$digest();
+        expect($animate.queue.shift().event).toBe('enter'); //ngView
+        expect($animate.queue.shift().event).toBe('enter'); //repeat 1
+        expect($animate.queue.shift().event).toBe('enter'); //repeat 2
 
-          var destroyed, inner = element.children(0);
-          inner.on('$destroy', function() {
-            destroyed = true;
-          });
+        expect(element.text()).toEqual('12');
 
-          $location.path('/foo');
-          $rootScope.$digest();
+        $location.path('/bar');
+        $rootScope.$digest();
 
-          $location.path('/bar');
-          $rootScope.$digest();
+        expect($animate.queue.shift().event).toBe('enter'); //ngView new
+        expect($animate.queue.shift().event).toBe('leave'); //ngView old
 
-          $location.path('/bar');
-          $rootScope.$digest();
+        $rootScope.$digest();
 
-          expect(destroyed).toBe(true);
-        });
+        expect($animate.queue.shift().event).toBe('enter'); //ngRepeat 3
+        expect($animate.queue.shift().event).toBe('enter'); //ngRepeat 4
+
+        expect(element.text()).toEqual('34');
+
+        function n(text) {
+          return text.replace(/\r\n/m, '').replace(/\r\n/m, '');
+        }
       });
     });
+
+    it('should destroy the previous leave animation if a new one takes place',
+      inject(function ($compile, $rootScope, $animate, $location, $timeout) {
+        var $scope = $rootScope.$new();
+        element = $compile(html(
+          '<div>' +
+            '<div ng-view></div>' +
+          '</div>'
+        ))($scope);
+
+        $scope.$apply('value = true');
+
+        $location.path('/bar');
+        $rootScope.$digest();
+
+        var destroyed, inner = element.children(0);
+        inner.on('$destroy', function() {
+          destroyed = true;
+        });
+
+        $location.path('/foo');
+        $rootScope.$digest();
+
+        $location.path('/bar');
+        $rootScope.$digest();
+
+        $location.path('/bar');
+        $rootScope.$digest();
+
+        expect(destroyed).toBe(true);
+      })
+    );
+  });
 
 
   describe('autoscroll', function () {
@@ -964,20 +963,21 @@ describe('ngView animations', function() {
 
 
     it('should only call $anchorScroll after the "enter" animation completes', inject(
-        compileAndLink('<div><ng:view autoscroll></ng:view></div>'),
-        function($rootScope, $location, $animate, $timeout) {
-          $location.path('/foo');
+      compileAndLink('<div><ng:view autoscroll></ng:view></div>'),
+      function($rootScope, $location, $animate, $timeout) {
+        $location.path('/foo');
 
-          expect($animate.enter).not.toHaveBeenCalled();
-          $rootScope.$digest();
+        expect($animate.enter).not.toHaveBeenCalled();
+        $rootScope.$digest();
 
-          expect(autoScrollSpy).not.toHaveBeenCalled();
+        expect(autoScrollSpy).not.toHaveBeenCalled();
 
-          expect($animate.queue.shift().event).toBe('enter');
-          $animate.triggerCallbacks();
+        expect($animate.queue.shift().event).toBe('enter');
+        $animate.triggerCallbacks();
 
-          expect($animate.enter).toHaveBeenCalledOnce();
-          expect(autoScrollSpy).toHaveBeenCalledOnce();
-    }));
+        expect($animate.enter).toHaveBeenCalledOnce();
+        expect(autoScrollSpy).toHaveBeenCalledOnce();
+      }
+    ));
   });
 });

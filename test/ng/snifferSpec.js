@@ -3,6 +3,7 @@
 describe('$sniffer', function() {
 
   function sniffer($window, $document) {
+    /* global $SnifferProvider: false */
     $window.navigator = {};
     $document = jqLite($document || {});
     if (!$document[0].body) {
@@ -105,9 +106,6 @@ describe('$sniffer', function() {
         }
         else if(/ie/i.test(ua) || /trident/i.test(ua)) {
           expectedPrefix = 'Ms';
-        }
-        else if(/opera/i.test(ua)) {
-          expectedPrefix = 'O';
         }
         expect($sniffer.vendorPrefix).toBe(expectedPrefix);
       });

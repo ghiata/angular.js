@@ -112,7 +112,7 @@ angular.scenario.setUpAndRun = function(config) {
   }
 
   angular.forEach(angular.scenario.output, function(fn, name) {
-    if (!output.length || indexOf(output,name) != -1) {
+    if (!output.length || output.indexOf(name) != -1) {
       var context = body.append('<div></div>').find('div:last');
       context.attr('id', name);
       fn.call({}, context, $runner, objModel);
@@ -294,7 +294,7 @@ _jQuery.fn.bindings = function(windowJquery, bindExp) {
   function push(value) {
     if (value === undefined) {
       value = '';
-    } else if (typeof value != 'string') {
+    } else if (typeof value !== 'string') {
       value = angular.toJson(value);
     }
     result.push('' + value);
@@ -302,27 +302,21 @@ _jQuery.fn.bindings = function(windowJquery, bindExp) {
 
   selection.each(function() {
     var element = windowJquery(this),
-        binding;
-    if (binding = element.data('$binding')) {
-      if (typeof binding == 'string') {
-        if (match(binding)) {
-          push(element.scope().$eval(binding));
+        bindings;
+    if (bindings = element.data('$binding')) {
+      for(var expressions = [], binding, j=0, jj=bindings.length;  j<jj; j++) {
+        binding = bindings[j];
+
+        if (binding.expressions) {
+          expressions = binding.expressions;
+        } else {
+          expressions = [binding];
         }
-      } else {
-        if (!angular.isArray(binding)) {
-          binding = [binding];
-        }
-        for(var fns, j=0, jj=binding.length;  j<jj; j++) {
-          fns = binding[j];
-          if (fns.parts) {
-            fns = fns.parts;
-          } else {
-            fns = [fns];
-          }
-          for (var scope, fn, i = 0, ii = fns.length; i < ii; i++) {
-            if(match((fn = fns[i]).exp)) {
-              push(fn(scope = scope || element.scope()));
-            }
+        for (var scope, expression, i = 0, ii = expressions.length; i < ii; i++) {
+          expression = expressions[i];
+          if(match(expression)) {
+            scope = scope || element.scope();
+            push(scope.$eval(expression));
           }
         }
       }

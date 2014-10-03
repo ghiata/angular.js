@@ -1,6 +1,10 @@
+'use strict';
+
 describe("$animate", function() {
 
   describe("without animation", function() {
+    var element, $rootElement;
+
     beforeEach(module(function() {
       return function($compile, _$rootElement_, $rootScope) {
         element = $compile('<div></div>')($rootScope);
@@ -13,6 +17,19 @@ describe("$animate", function() {
       expect(element.contents().length).toBe(0);
       $animate.enter(child, element);
       expect(element.contents().length).toBe(1);
+    }));
+
+    it("should enter the element to the start of the parent container",
+      inject(function($animate, $compile, $rootScope) {
+
+      for(var i = 0; i < 5; i++) {
+        element.append(jqLite('<div> ' + i + '</div>'));
+      }
+
+      var child = jqLite('<div>first</div>');
+      $animate.enter(child, element);
+
+      expect(element.text()).toEqual('first 0 1 2 3 4');
     }));
 
     it("should remove the element at the end of leave animation", inject(function($animate, $compile, $rootScope) {
@@ -38,6 +55,28 @@ describe("$animate", function() {
       expect(element).toBeShown();
       $animate.addClass(element, 'ng-hide');
       expect(element).toBeHidden();
+    }));
+
+    it("should run each method and return a promise", inject(function($animate, $document) {
+      var element = jqLite('<div></div>');
+      var move   = jqLite('<div></div>');
+      var parent = jqLite($document[0].body);
+      parent.append(move);
+
+      expect($animate.enter(element, parent)).toBeAPromise();
+      expect($animate.move(element, move)).toBeAPromise();
+      expect($animate.addClass(element, 'on')).toBeAPromise();
+      expect($animate.removeClass(element, 'off')).toBeAPromise();
+      expect($animate.setClass(element, 'on', 'off')).toBeAPromise();
+      expect($animate.leave(element)).toBeAPromise();
+    }));
+
+    it("should provide noop `enabled` and `cancel` methods", inject(function($animate) {
+      expect($animate.enabled).toBe(angular.noop);
+      expect($animate.enabled()).toBeUndefined();
+
+      expect($animate.cancel).toBe(angular.noop);
+      expect($animate.cancel()).toBeUndefined();
     }));
 
     it("should add and remove classes on SVG elements", inject(function($animate) {

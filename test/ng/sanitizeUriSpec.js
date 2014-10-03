@@ -1,3 +1,4 @@
+/* jshint scripturl: true */
 'use strict';
 
 describe('sanitizeUri', function() {
@@ -12,7 +13,7 @@ describe('sanitizeUri', function() {
       };
       sanitizeImg = function(uri) {
         return $$sanitizeUri(uri, true);
-      }
+      };
     });
   });
 
@@ -27,6 +28,11 @@ describe('sanitizeUri', function() {
     it('should sanitize javascript: urls', function() {
       testUrl = "javascript:doEvilStuff()";
       expect(sanitizeImg(testUrl)).toBe('unsafe:javascript:doEvilStuff()');
+    });
+
+    it('should sanitize javascript: urls with comments', function() {
+      testUrl = "javascript:alert(1)//data:image/";
+      expect(sanitizeImg(testUrl)).toBe('unsafe:javascript:alert(1)//data:image/');
     });
 
     it('should sanitize non-image data: urls', function() {
@@ -223,10 +229,10 @@ describe('sanitizeUri', function() {
       expect(returnVal).toBe(sanitizeUriProvider);
 
       testUrl = "javascript:doEvilStuff()";
-        expect(sanitizeHref(testUrl)).toBe('javascript:doEvilStuff()');
+      expect(sanitizeHref(testUrl)).toBe('javascript:doEvilStuff()');
 
       testUrl = "http://recon/figured";
-        expect(sanitizeHref(testUrl)).toBe('unsafe:http://recon/figured');
+      expect(sanitizeHref(testUrl)).toBe('unsafe:http://recon/figured');
     });
 
   });
