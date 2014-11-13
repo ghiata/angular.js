@@ -179,7 +179,7 @@ ngRouteModule.directive('ngView', ngViewFillContentFactory);
  * Emitted every time the ngView content is reloaded.
  */
 ngViewFactory.$inject = ['$route', '$anchorScroll', '$animate'];
-function ngViewFactory(   $route,   $anchorScroll,   $animate) {
+function ngViewFactory($route, $anchorScroll, $animate) {
   return {
     restrict: 'ECA',
     terminal: true,
@@ -196,16 +196,16 @@ function ngViewFactory(   $route,   $anchorScroll,   $animate) {
         update();
 
         function cleanupLastView() {
-          if(previousLeaveAnimation) {
+          if (previousLeaveAnimation) {
             $animate.cancel(previousLeaveAnimation);
             previousLeaveAnimation = null;
           }
 
-          if(currentScope) {
+          if (currentScope) {
             currentScope.$destroy();
             currentScope = null;
           }
-          if(currentElement) {
+          if (currentElement) {
             previousLeaveAnimation = $animate.leave(currentElement);
             previousLeaveAnimation.then(function() {
               previousLeaveAnimation = null;
@@ -229,7 +229,7 @@ function ngViewFactory(   $route,   $anchorScroll,   $animate) {
             // function is called before linking the content, which would apply child
             // directives to non existing elements.
             var clone = $transclude(newScope, function(clone) {
-              $animate.enter(clone, null, currentElement || $element).then(function onNgViewEnter () {
+              $animate.enter(clone, null, currentElement || $element).then(function onNgViewEnter() {
                 if (angular.isDefined(autoScrollExp)
                   && (!autoScrollExp || scope.$eval(autoScrollExp))) {
                   $anchorScroll();

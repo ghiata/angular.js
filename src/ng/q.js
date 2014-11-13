@@ -23,24 +23,27 @@
  * It can be used like so:
  *
  * ```js
- * return $q(function(resolve, reject) {
- *   // perform some asynchronous operation, resolve or reject the promise when appropriate.
- *   setInterval(function() {
- *     if (pollStatus > 0) {
- *       resolve(polledValue);
- *     } else if (pollStatus < 0) {
- *       reject(polledValue);
- *     } else {
- *       pollStatus = pollAgain(function(value) {
- *         polledValue = value;
- *       });
- *     }
- *   }, 10000);
- * }).
- *   then(function(value) {
- *     // handle success
+ *   // for the purpose of this example let's assume that variables `$q` and `okToGreet`
+ *   // are available in the current lexical scope (they could have been injected or passed in).
+ *
+ *   function asyncGreet(name) {
+ *     // perform some asynchronous operation, resolve or reject the promise when appropriate.
+ *     return $q(function(resolve, reject) {
+ *       setTimeout(function() {
+ *         if (okToGreet(name)) {
+ *           resolve('Hello, ' + name + '!');
+ *         } else {
+ *           reject('Greeting ' + name + ' is not allowed.');
+ *         }
+ *       }, 1000);
+ *     });
+ *   }
+ *
+ *   var promise = asyncGreet('Robin Hood');
+ *   promise.then(function(greeting) {
+ *     alert('Success: ' + greeting);
  *   }, function(reason) {
- *     // handle failure
+ *     alert('Failed: ' + reason);
  *   });
  * ```
  *
@@ -56,7 +59,7 @@
  * asynchronous programming what `try`, `catch` and `throw` keywords are to synchronous programming.
  *
  * ```js
- *   // for the purpose of this example let's assume that variables `$q`, `scope` and `okToGreet`
+ *   // for the purpose of this example let's assume that variables `$q` and `okToGreet`
  *   // are available in the current lexical scope (they could have been injected or passed in).
  *
  *   function asyncGreet(name) {
@@ -139,15 +142,11 @@
  *
  * - `catch(errorCallback)` – shorthand for `promise.then(null, errorCallback)`
  *
- * - `finally(callback)` – allows you to observe either the fulfillment or rejection of a promise,
+ * - `finally(callback, notifyCallback)` – allows you to observe either the fulfillment or rejection of a promise,
  *   but to do so without modifying the final value. This is useful to release resources or do some
  *   clean-up that needs to be done whether the promise was rejected or resolved. See the [full
  *   specification](https://github.com/kriskowal/q/wiki/API-Reference#promisefinallycallback) for
  *   more information.
- *
- *   Because `finally` is a reserved word in JavaScript and reserved keywords are not supported as
- *   property names by ES3, you'll need to invoke the method like `promise['finally'](callback)` to
- *   make your code IE8 and Android 2.x compatible.
  *
  * # Chaining promises
  *
@@ -315,7 +314,7 @@ function qFactory(nextTick, exceptionHandler) {
         } else {
           promise.reject(state.value);
         }
-      } catch(e) {
+      } catch (e) {
         promise.reject(e);
         exceptionHandler(e);
       }
@@ -365,7 +364,7 @@ function qFactory(nextTick, exceptionHandler) {
           this.promise.$$state.status = 1;
           scheduleProcessQueue(this.promise.$$state);
         }
-      } catch(e) {
+      } catch (e) {
         fns[1](e);
         exceptionHandler(e);
       }
@@ -393,7 +392,7 @@ function qFactory(nextTick, exceptionHandler) {
             callback = callbacks[i][3];
             try {
               result.notify(isFunction(callback) ? callback(progress) : progress);
-            } catch(e) {
+            } catch (e) {
               exceptionHandler(e);
             }
           }
@@ -458,7 +457,7 @@ function qFactory(nextTick, exceptionHandler) {
     var callbackOutput = null;
     try {
       if (isFunction(callback)) callbackOutput = callback();
-    } catch(e) {
+    } catch (e) {
       return makePromise(e, false);
     }
     if (isPromiseLike(callbackOutput)) {

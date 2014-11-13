@@ -296,7 +296,7 @@ describe('Scope', function() {
 
         expect(function() {
           $rootScope.$digest();
-        }).toThrowMinErr('$rootScope', 'infdig', '100 $digest() iterations reached. Aborting!\n'+
+        }).toThrowMinErr('$rootScope', 'infdig', '100 $digest() iterations reached. Aborting!\n' +
             'Watchers fired in the last 5 iterations: ' +
             '[["a; newVal: 96; oldVal: 95","b; newVal: 97; oldVal: 96"],' +
             '["a; newVal: 97; oldVal: 96","b; newVal: 98; oldVal: 97"],' +
@@ -318,7 +318,7 @@ describe('Scope', function() {
       try {
         $rootScope.$digest();
         throw new Error('Should have thrown exception');
-      } catch(e) {
+      } catch (e) {
         expect(e.message.match(/"fn: (watcherA|function)/g).length).toBe(10);
       }
     }));
@@ -332,16 +332,16 @@ describe('Scope', function() {
         var d = $q.defer();
 
         d.resolve('Hello, world.');
-        $rootScope.$watch(function () {
+        $rootScope.$watch(function() {
           var $d2 = $q.defer();
           $d2.resolve('Goodbye.');
-          $d2.promise.then(function () { });
+          $d2.promise.then(function() { });
           return d.promise;
-        }, function () { return 0; });
+        }, function() { return 0; });
 
         expect(function() {
           $rootScope.$digest();
-        }).toThrowMinErr('$rootScope', 'infdig', '10 $digest() iterations reached. Aborting!\n'+
+        }).toThrowMinErr('$rootScope', 'infdig', '10 $digest() iterations reached. Aborting!\n' +
                 'Watchers fired in the last 5 iterations: []');
 
         expect($rootScope.$$phase).toBeNull();
@@ -566,7 +566,7 @@ describe('Scope', function() {
 
       it('should not trigger if nothing change', inject(function($rootScope) {
         $rootScope.$digest();
-        expect(log).toEqual([{ newVal : undefined, oldVal : undefined, identical : true }]);
+        expect(log).toEqual([{ newVal: undefined, oldVal: undefined, identical: true }]);
         log.reset();
 
         $rootScope.$digest();
@@ -676,10 +676,10 @@ describe('Scope', function() {
           }).not.toThrow();
         });
 
-        it('should watch array-like objects like arrays', function () {
+        it('should watch array-like objects like arrays', function() {
           var arrayLikelog = [];
           $rootScope.$watchCollection('arrayLikeObject', function logger(obj) {
-            forEach(obj, function (element){
+            forEach(obj, function(element) {
               arrayLikelog.push(element.name);
             });
           });
@@ -1224,7 +1224,7 @@ describe('Scope', function() {
     it('should cause a $digest rerun', inject(function($rootScope) {
       $rootScope.log = '';
       $rootScope.value = 0;
-      $rootScope.$watch('value', function () {
+      $rootScope.$watch('value', function() {
         $rootScope.log = $rootScope.log + ".";
       });
       $rootScope.$watch('init', function() {
@@ -1243,7 +1243,7 @@ describe('Scope', function() {
       expect($rootScope.log).toBe('12');
     }));
 
-    it('should run async expressions in their proper context', inject(function ($rootScope) {
+    it('should run async expressions in their proper context', inject(function($rootScope) {
       var child = $rootScope.$new();
       $rootScope.ctx = 'root context';
       $rootScope.log = '';
@@ -1638,6 +1638,31 @@ describe('Scope', function() {
           expect(child1.$$listenerCount).toEqual({event1: 1});
           expect(child2.$$listenerCount).toEqual({});
         }));
+
+
+        it('should not decrement $$listenerCount when called second time', inject(function($rootScope) {
+          var child = $rootScope.$new(),
+              listener1Spy = jasmine.createSpy(),
+              listener2Spy = jasmine.createSpy();
+
+          child.$on('abc', listener1Spy);
+          expect($rootScope.$$listenerCount).toEqual({abc: 1});
+          expect(child.$$listenerCount).toEqual({abc: 1});
+
+          var deregisterEventListener = child.$on('abc', listener2Spy);
+          expect($rootScope.$$listenerCount).toEqual({abc: 2});
+          expect(child.$$listenerCount).toEqual({abc: 2});
+
+          deregisterEventListener();
+
+          expect($rootScope.$$listenerCount).toEqual({abc: 1});
+          expect(child.$$listenerCount).toEqual({abc: 1});
+
+          deregisterEventListener();
+
+          expect($rootScope.$$listenerCount).toEqual({abc: 1});
+          expect(child.$$listenerCount).toEqual({abc: 1});
+        }));
       });
     });
 
@@ -1674,7 +1699,7 @@ describe('Scope', function() {
         expect(log).toEqual('2>1>0>');
       });
 
-      it('should allow all events on the same scope to run even if stopPropagation is called', function(){
+      it('should allow all events on the same scope to run even if stopPropagation is called', function() {
         child.$on('myEvent', logger);
         grandChild.$on('myEvent', function(e) { e.stopPropagation(); });
         grandChild.$on('myEvent', logger);

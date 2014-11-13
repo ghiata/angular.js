@@ -1,5 +1,24 @@
 'use strict';
 
+var APPLICATION_JSON = 'application/json';
+var CONTENT_TYPE_APPLICATION_JSON = {'Content-Type': APPLICATION_JSON + ';charset=utf-8'};
+var JSON_START = /^\s*(\[|\{[^\{])/;
+var JSON_END = /[\}\]]\s*$/;
+var JSON_PROTECTION_PREFIX = /^\)\]\}',?\n/;
+
+function defaultHttpResponseTransform(data, headers) {
+  if (isString(data)) {
+    // strip json vulnerability protection prefix
+    data = data.replace(JSON_PROTECTION_PREFIX, '');
+    var contentType = headers('Content-Type');
+    if ((contentType && contentType.indexOf(APPLICATION_JSON) === 0) ||
+        (JSON_START.test(data) && JSON_END.test(data))) {
+      data = fromJson(data);
+    }
+  }
+  return data;
+}
+
 /**
  * Parse headers into key value object
  *
@@ -86,11 +105,6 @@ function isSuccess(status) {
  * Use `$httpProvider` to change the default behavior of the {@link ng.$http $http} service.
  * */
 function $HttpProvider() {
-  var JSON_START = /^\s*(\[|\{[^\{])/,
-      JSON_END = /[\}\]]\s*$/,
-      PROTECTION_PREFIX = /^\)\]\}',?\n/,
-      CONTENT_TYPE_APPLICATION_JSON = {'Content-Type': 'application/json;charset=utf-8'};
-
   /**
    * @ngdoc property
    * @name $httpProvider#defaults
@@ -114,15 +128,7 @@ function $HttpProvider() {
    **/
   var defaults = this.defaults = {
     // transform incoming response data
-    transformResponse: [function(data) {
-      if (isString(data)) {
-        // strip json vulnerability protection prefix
-        data = data.replace(PROTECTION_PREFIX, '');
-        if (JSON_START.test(data) && JSON_END.test(data))
-          data = fromJson(data);
-      }
-      return data;
-    }],
+    transformResponse: [defaultHttpResponseTransform],
 
     // transform outgoing request data
     transformRequest: [function(d) {
@@ -150,7 +156,7 @@ function $HttpProvider() {
    * @description
    *
    * Configure $http service to combine processing of multiple http responses received at around
-   * the same time via {@link ng.$rootScope#applyAsync $rootScope.$applyAsync}. This can result in
+   * the same time via {@link ng.$rootScope.Scope#$applyAsync $rootScope.$applyAsync}. This can result in
    * significant performance improvement for bigger applications that make many HTTP requests
    * concurrently (common during application bootstrap).
    *
@@ -172,9 +178,18 @@ function $HttpProvider() {
   };
 
   /**
-   * Are ordered by request, i.e. they are applied in the same order as the
+   * @ngdoc property
+   * @name $httpProvider#interceptors
+   * @description
+   *
+   * Array containing service factories for all synchronous or asynchronous {@link ng.$http $http}
+   * pre-processing of request or postprocessing of responses.
+   *
+   * These service factories are ordered by request, i.e. they are applied in the same order as the
    * array, on request, but reverse order, on response.
-   */
+   *
+   * {@link ng.$http#interceptors Interceptors detailed info}
+   **/
   var interceptorFactories = this.interceptors = [];
 
   this.$get = ['$httpBackend', '$browser', '$cacheFactory', '$rootScope', '$q', '$injector',
@@ -226,7 +241,8 @@ function $HttpProvider() {
      * with two $http specific methods: `success` and `error`.
      *
      * ```js
-     *   $http({method: 'GET', url: '/someUrl'}).
+     *   // Simple GET request example :
+     *   $http.get('/someUrl').
      *     success(function(data, status, headers, config) {
      *       // this callback will be called asynchronously
      *       // when the response is available
@@ -236,6 +252,20 @@ function $HttpProvider() {
      *       // or server returns response with an error status.
      *     });
      * ```
+     *
+     * ```js
+     *   // Simple POST request example (passing data) :
+     *   $http.post('/someUrl', {msg:'hello word!'}).
+     *     success(function(data, status, headers, config) {
+     *       // this callback will be called asynchronously
+     *       // when the response is available
+     *     }).
+     *     error(function(data, status, headers, config) {
+     *       // called asynchronously if an error occurs
+     *       // or server returns response with an error status.
+     *     });
+     * ```
+     *
      *
      * Since the returned value of calling the $http function is a `promise`, you can also use
      * the `then` method to register callbacks, and these callbacks will receive a single argument –
@@ -389,7 +419,7 @@ function $HttpProvider() {
      *
      * You can change the default cache to a new object (built with
      * {@link ng.$cacheFactory `$cacheFactory`}) by updating the
-     * {@link ng.$http#properties_defaults `$http.defaults.cache`} property. All requests who set
+     * {@link ng.$http#defaults `$http.defaults.cache`} property. All requests who set
      * their `cache` property to `true` will now use this cache object.
      *
      * If you set the default cache to `false` then only requests that specify their own custom
@@ -726,7 +756,7 @@ function $HttpProvider() {
         }
       });
 
-      while(chain.length) {
+      while (chain.length) {
         var thenFn = chain.shift();
         var rejectFn = chain.shift();
 
@@ -751,9 +781,12 @@ function $HttpProvider() {
 
       function transformResponse(response) {
         // make a copy since the response must be cacheable
-        var resp = extend({}, response, {
-          data: transformData(response.data, response.headers, config.transformResponse)
-        });
+        var resp = extend({}, response);
+        if (!response.data) {
+          resp.data = response.data;
+        } else {
+          resp.data = transformData(response.data, response.headers, config.transformResponse);
+        }
         return (isSuccess(response.status))
           ? resp
           : $q.reject(resp);
@@ -1038,7 +1071,7 @@ function $HttpProvider() {
           status: status,
           headers: headersGetter(headers),
           config: config,
-          statusText : statusText
+          statusText: statusText
         });
       }
 
@@ -1059,7 +1092,7 @@ function $HttpProvider() {
 
         forEach(value, function(v) {
           if (isObject(v)) {
-            if (isDate(v)){
+            if (isDate(v)) {
               v = v.toISOString();
             } else {
               v = toJson(v);
@@ -1069,7 +1102,7 @@ function $HttpProvider() {
                      encodeUriQuery(v));
         });
       });
-      if(parts.length > 0) {
+      if (parts.length > 0) {
         url += ((url.indexOf('?') == -1) ? '?' : '&') + parts.join('&');
       }
       return url;

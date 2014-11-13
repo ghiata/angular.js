@@ -11,6 +11,7 @@
     "jqLite": false,
     "jQuery": false,
     "slice": false,
+    "splice": false,
     "push": false,
     "toString": false,
     "ngMinErr": false,
@@ -53,12 +54,11 @@
     "isBoolean": false,
     "isPromiseLike": false,
     "trim": false,
+    "escapeForRegexp": false,
     "isElement": false,
     "makeMap": false,
-    "size": false,
     "includes": false,
     "arrayRemove": false,
-    "isLeafNode": false,
     "copy": false,
     "shallowCopy": false,
     "equals": false,
@@ -90,6 +90,15 @@
     "reloadWithDebugInfo": false,
 
     "skipDestroyOnNextJQueryCleanData": true,
+
+    "NODE_TYPE_ELEMENT": false,
+    "NODE_TYPE_TEXT": false,
+    "NODE_TYPE_COMMENT": false,
+    "NODE_TYPE_COMMENT": false,
+    "NODE_TYPE_DOCUMENT": false,
+    "NODE_TYPE_DOCUMENT_FRAGMENT": false,
+
+    "defaultHttpResponseTransform": false,
 
     /* filters.js */
     "getFirstThursdayOfYear": false,
@@ -132,6 +141,7 @@
     "addEventListenerFn": false,
     "removeEventListenerFn": false,
     "jqLiteIsTextNode": false,
+    "jqLiteDocumentLoaded": false,
 
     /* apis.js */
     "hashKey": false,

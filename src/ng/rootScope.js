@@ -67,7 +67,7 @@
  * They also provide an event emission/broadcast and subscription facility. See the
  * {@link guide/scope developer guide on scopes}.
  */
-function $RootScopeProvider(){
+function $RootScopeProvider() {
   var TTL = 10;
   var $rootScopeMinErr = minErr('$rootScope');
   var lastDirtyWatch = null;
@@ -81,7 +81,7 @@ function $RootScopeProvider(){
   };
 
   this.$get = ['$injector', '$exceptionHandler', '$parse', '$browser',
-      function( $injector,   $exceptionHandler,   $parse,   $browser) {
+      function($injector, $exceptionHandler, $parse, $browser) {
 
     /**
      * @ngdoc type
@@ -112,6 +112,10 @@ function $RootScopeProvider(){
          expect(child.salutation).toEqual('Welcome');
          expect(parent.salutation).toEqual('Hello');
      * ```
+     *
+     * When interacting with `Scope` in tests, additional helper methods are available on the
+     * instances of `Scope` type. See {@link ngMock.$rootScope.Scope ngMock Scope} for additional
+     * details.
      *
      *
      * @param {Object.<string, function()>=} providers Map of service factory which need to be
@@ -424,7 +428,7 @@ function $RootScopeProvider(){
         if (!watchExpressions.length) {
           // No expressions means we call the listener ASAP
           var shouldCall = true;
-          self.$evalAsync(function () {
+          self.$evalAsync(function() {
             if (shouldCall) listener(newValues, newValues, self);
           });
           return function deregisterWatchGroup() {
@@ -441,7 +445,7 @@ function $RootScopeProvider(){
           });
         }
 
-        forEach(watchExpressions, function (expr, i) {
+        forEach(watchExpressions, function(expr, i) {
           var unwatchFn = self.$watch(expr, function watchGroupSubAction(value, oldValue) {
             newValues[i] = value;
             oldValues[i] = oldValue;
@@ -551,6 +555,9 @@ function $RootScopeProvider(){
           newValue = _value;
           var newLength, key, bothNaN, newItem, oldItem;
 
+          // If the new value is undefined, then return undefined as the watch may be a one-time watch
+          if (isUndefined(newValue)) return;
+
           if (!isObject(newValue)) { // if primitive
             if (oldValue !== newValue) {
               oldValue = newValue;
@@ -613,7 +620,7 @@ function $RootScopeProvider(){
             if (oldLength > newLength) {
               // we used to have more keys, need to find them and destroy them.
               changeDetected++;
-              for(key in oldValue) {
+              for (key in oldValue) {
                 if (!newValue.hasOwnProperty(key)) {
                   oldLength--;
                   delete oldValue[key];
@@ -733,7 +740,7 @@ function $RootScopeProvider(){
           dirty = false;
           current = target;
 
-          while(asyncQueue.length) {
+          while (asyncQueue.length) {
             try {
               asyncTask = asyncQueue.shift();
               asyncTask.scope.$eval(asyncTask.expression);
@@ -790,7 +797,7 @@ function $RootScopeProvider(){
             // this piece should be kept in sync with the traversal in $broadcast
             if (!(next = (current.$$childHead ||
                 (current !== target && current.$$nextSibling)))) {
-              while(current !== target && !(next = current.$$nextSibling)) {
+              while (current !== target && !(next = current.$$nextSibling)) {
                 current = current.$parent;
               }
             }
@@ -798,7 +805,7 @@ function $RootScopeProvider(){
 
           // `break traverseScopesLoop;` takes us to here
 
-          if((dirty || asyncQueue.length) && !(ttl--)) {
+          if ((dirty || asyncQueue.length) && !(ttl--)) {
             clearPhase();
             throw $rootScopeMinErr('infdig',
                 '{0} $digest() iterations reached. Aborting!\n' +
@@ -810,7 +817,7 @@ function $RootScopeProvider(){
 
         clearPhase();
 
-        while(postDigestQueue.length) {
+        while (postDigestQueue.length) {
           try {
             postDigestQueue.shift()();
           } catch (e) {
@@ -966,7 +973,7 @@ function $RootScopeProvider(){
         asyncQueue.push({scope: this, expression: expr});
       },
 
-      $$postDigest : function(fn) {
+      $$postDigest: function(fn) {
         postDigestQueue.push(fn);
       },
 
@@ -1103,8 +1110,11 @@ function $RootScopeProvider(){
 
         var self = this;
         return function() {
-          namedListeners[namedListeners.indexOf(listener)] = null;
-          decrementListenerCount(self, 1, name);
+          var indexOfListener = namedListeners.indexOf(listener);
+          if (indexOfListener !== -1) {
+            namedListeners[indexOfListener] = null;
+            decrementListenerCount(self, 1, name);
+          }
         };
       },
 
@@ -1151,7 +1161,7 @@ function $RootScopeProvider(){
         do {
           namedListeners = scope.$$listeners[name] || empty;
           event.currentScope = scope;
-          for (i=0, length=namedListeners.length; i<length; i++) {
+          for (i = 0, length = namedListeners.length; i < length; i++) {
 
             // if listeners were deregistered, defragment the array
             if (!namedListeners[i]) {
@@ -1225,7 +1235,7 @@ function $RootScopeProvider(){
         while ((current = next)) {
           event.currentScope = current;
           listeners = current.$$listeners[name] || [];
-          for (i=0, length = listeners.length; i<length; i++) {
+          for (i = 0, length = listeners.length; i < length; i++) {
             // if listeners were deregistered, defragment the array
             if (!listeners[i]) {
               listeners.splice(i, 1);
@@ -1236,7 +1246,7 @@ function $RootScopeProvider(){
 
             try {
               listeners[i].apply(null, listenerArgs);
-            } catch(e) {
+            } catch (e) {
               $exceptionHandler(e);
             }
           }
@@ -1247,7 +1257,7 @@ function $RootScopeProvider(){
           // (though it differs due to having the extra check for $$listenerCount)
           if (!(next = ((current.$$listenerCount[name] && current.$$childHead) ||
               (current !== target && current.$$nextSibling)))) {
-            while(current !== target && !(next = current.$$nextSibling)) {
+            while (current !== target && !(next = current.$$nextSibling)) {
               current = current.$parent;
             }
           }
@@ -1301,7 +1311,7 @@ function $RootScopeProvider(){
       while (applyAsyncQueue.length) {
         try {
           applyAsyncQueue.shift()();
-        } catch(e) {
+        } catch (e) {
           $exceptionHandler(e);
         }
       }

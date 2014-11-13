@@ -4,11 +4,11 @@ describe('filters', function() {
 
   var filter;
 
-  beforeEach(inject(function($filter){
+  beforeEach(inject(function($filter) {
     filter = $filter;
   }));
 
-  it('should call the filter when evaluating expression', function(){
+  it('should call the filter when evaluating expression', function() {
     var filter = jasmine.createSpy('myFilter');
     createInjector(['ng', function($filterProvider) {
       $filterProvider.register('myFilter', valueFn(filter));
@@ -73,7 +73,7 @@ describe('filters', function() {
       expect(num).toBe('123.112');
     });
 
-    it('should format the same with string as well as numeric fractionSize', function(){
+    it('should format the same with string as well as numeric fractionSize', function() {
       var num = formatNumber(123.1, pattern, ',', '.', "0");
       expect(num).toBe('123');
       num = formatNumber(123.1, pattern, ',', '.', 0);
@@ -84,7 +84,7 @@ describe('filters', function() {
       expect(num).toBe('123.100');
     });
 
-    it('should format numbers that round to zero as nonnegative', function(){
+    it('should format numbers that round to zero as nonnegative', function() {
       var num = formatNumber(-0.01, pattern, ',', '.', 1);
       expect(num).toBe('0.0');
     });
@@ -101,6 +101,7 @@ describe('filters', function() {
       expect(currency(0)).toEqual('$0.00');
       expect(currency(-999)).toEqual('($999.00)');
       expect(currency(1234.5678, "USD$")).toEqual('USD$1,234.57');
+      expect(currency(1234.5678, "USD$", 0)).toEqual('USD$1,235');
     });
 
     it('should pass through null and undefined to be compatible with one-time binding', function() {
@@ -144,7 +145,7 @@ describe('filters', function() {
       expect(number(+Infinity)).toEqual('');
       expect(number(-Infinity)).toEqual('');
       expect(number("1234.5678")).toEqual('1,234.568');
-      expect(number(1/0)).toEqual("");
+      expect(number(1 / 0)).toEqual("");
       expect(number(1,        2)).toEqual("1.00");
       expect(number(.1,       2)).toEqual("0.10");
       expect(number(.01,      2)).toEqual("0.01");
@@ -195,7 +196,7 @@ describe('filters', function() {
     });
   });
 
-  describe('json', function () {
+  describe('json', function() {
     it('should do basic filter', function() {
       expect(filter('json')({a:"b"})).toEqual(toJson({a:"b"}, true));
     });
@@ -290,7 +291,7 @@ describe('filters', function() {
 
     it('should format timezones correctly (as per ISO_8601)', function() {
       //Note: TzDate's first argument is offset, _not_ timezone.
-      var utc       = new angular.mock.TzDate( 0, '2010-09-03T12:05:08.000Z');
+      var utc       = new angular.mock.TzDate(0, '2010-09-03T12:05:08.000Z');
       var eastOfUTC = new angular.mock.TzDate(-5, '2010-09-03T12:05:08.000Z');
       var westOfUTC = new angular.mock.TzDate(+5, '2010-09-03T12:05:08.000Z');
       var eastOfUTCPartial = new angular.mock.TzDate(-5.5, '2010-09-03T12:05:08.000Z');
@@ -389,10 +390,10 @@ describe('filters', function() {
       expect(date('2003-09-10', format)).toEqual('2003-09-10 00-00-00');
     });
 
-    it('should support different degrees of subsecond precision', function () {
+    it('should support different degrees of subsecond precision', function() {
       var format = 'yyyy-MM-dd ss';
 
-      var localDay = new Date(Date.UTC(2003, 9-1, 10, 13, 2, 3, 123)).getDate();
+      var localDay = new Date(Date.UTC(2003, 9 - 1, 10, 13, 2, 3, 123)).getDate();
 
       expect(date('2003-09-10T13:02:03.12345678Z', format)).toEqual('2003-09-' + localDay + ' 03');
       expect(date('2003-09-10T13:02:03.1234567Z', format)).toEqual('2003-09-' + localDay + ' 03');

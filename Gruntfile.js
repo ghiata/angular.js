@@ -4,6 +4,7 @@ var files = require('./angularFiles').files;
 var util = require('./lib/grunt/utils.js');
 var versionInfo = require('./lib/versions/version-info');
 var path = require('path');
+var e2e = require('./test/e2e/tools');
 
 module.exports = function(grunt) {
   //grunt plugins
@@ -46,12 +47,14 @@ module.exports = function(grunt) {
           base: '.',
           keepalive: true,
           middleware: function(connect, options){
+            var base = Array.isArray(options.base) ? options.base[options.base.length - 1] : options.base;
             return [
               util.conditionalCsp(),
               util.rewrite(),
+              e2e.middleware(),
               connect.favicon('images/favicon.ico'),
-              connect.static(options.base),
-              connect.directory(options.base)
+              connect.static(base),
+              connect.directory(base)
             ];
           }
         }
@@ -64,6 +67,7 @@ module.exports = function(grunt) {
           port: 8000,
           hostname: '0.0.0.0',
           middleware: function(connect, options){
+            var base = Array.isArray(options.base) ? options.base[options.base.length - 1] : options.base;
             return [
               function(req, resp, next) {
                 // cache get requests to speed up tests on travis
@@ -74,8 +78,9 @@ module.exports = function(grunt) {
                 next();
               },
               util.conditionalCsp(),
+              e2e.middleware(),
               connect.favicon('images/favicon.ico'),
-              connect.static(options.base)
+              connect.static(base)
             ];
           }
         }
@@ -287,14 +292,14 @@ module.exports = function(grunt) {
       }
     },
 
-    shell:{
-      "promises-aplus-tests":{
-        options:{
-          //stdout:true,
-          stderr:true,
-          failOnError:true
+    shell: {
+      "promises-aplus-tests": {
+        options: {
+          stdout: false,
+          stderr: true,
+          failOnError: true
         },
-        command:path.normalize('./node_modules/.bin/promises-aplus-tests tmp/promises-aplus-adapter++.js')
+        command: path.normalize('./node_modules/.bin/promises-aplus-tests tmp/promises-aplus-adapter++.js')
       }
     },
 

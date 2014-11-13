@@ -31,7 +31,6 @@ var inputType = {
    * @description
    * Standard HTML text input with angular data binding, inherited by most of the `input` elements.
    *
-   * *NOTE* Not every feature offered is available for all input types.
    *
    * @param {string} ngModel Assignable angular expression to data-bind to.
    * @param {string=} name Property name of the form under which the control is published.
@@ -115,7 +114,10 @@ var inputType = {
      * the HTML5 date input, a text element will be used. In that case, text must be entered in a valid ISO-8601
      * date format (yyyy-MM-dd), for example: `2009-01-06`. Since many
      * modern browsers do not yet support this input type, it is important to provide cues to users on the
-     * expected input format via a placeholder or label. The model must always be a Date object.
+     * expected input format via a placeholder or label.
+     *
+     * The model must always be a Date object, otherwise Angular will throw an error.
+     * Invalid `Date` objects (dates whose `getTime()` is `NaN`) will be rendered as an empty string.
      *
      * The timezone to be used to read/write the `Date` instance in the model can be defined using
      * {@link ng.directive:ngModelOptions ngModelOptions}. By default, this is the timezone of the browser.
@@ -198,12 +200,15 @@ var inputType = {
 
    /**
     * @ngdoc input
-    * @name input[dateTimeLocal]
+    * @name input[datetime-local]
     *
     * @description
     * Input with datetime validation and transformation. In browsers that do not yet support
     * the HTML5 date input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
-    * local datetime format (yyyy-MM-ddTHH:mm:ss), for example: `2010-12-28T14:57:00`. The model must be a Date object.
+    * local datetime format (yyyy-MM-ddTHH:mm:ss), for example: `2010-12-28T14:57:00`.
+    *
+    * The model must always be a Date object, otherwise Angular will throw an error.
+    * Invalid `Date` objects (dates whose `getTime()` is `NaN`) will be rendered as an empty string.
     *
     * The timezone to be used to read/write the `Date` instance in the model can be defined using
     * {@link ng.directive:ngModelOptions ngModelOptions}. By default, this is the timezone of the browser.
@@ -294,6 +299,9 @@ var inputType = {
    * local time format (HH:mm:ss), for example: `14:57:00`. Model must be a Date object. This binding will always output a
    * Date object to the model of January 1, 1970, or local date `new Date(1970, 0, 1, HH, mm, ss)`.
    *
+   * The model must always be a Date object, otherwise Angular will throw an error.
+   * Invalid `Date` objects (dates whose `getTime()` is `NaN`) will be rendered as an empty string.
+   *
    * The timezone to be used to read/write the `Date` instance in the model can be defined using
    * {@link ng.directive:ngModelOptions ngModelOptions}. By default, this is the timezone of the browser.
    *
@@ -380,7 +388,10 @@ var inputType = {
     * @description
     * Input with week-of-the-year validation and transformation to Date. In browsers that do not yet support
     * the HTML5 week input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
-    * week format (yyyy-W##), for example: `2013-W02`. The model must always be a Date object.
+    * week format (yyyy-W##), for example: `2013-W02`.
+    *
+    * The model must always be a Date object, otherwise Angular will throw an error.
+    * Invalid `Date` objects (dates whose `getTime()` is `NaN`) will be rendered as an empty string.
     *
     * The timezone to be used to read/write the `Date` instance in the model can be defined using
     * {@link ng.directive:ngModelOptions ngModelOptions}. By default, this is the timezone of the browser.
@@ -466,8 +477,12 @@ var inputType = {
    * @description
    * Input with month validation and transformation. In browsers that do not yet support
    * the HTML5 month input, a text element will be used. In that case, the text must be entered in a valid ISO-8601
-   * month format (yyyy-MM), for example: `2009-01`. The model must always be a Date object. In the event the model is
-   * not set to the first of the month, the first of that model's month is assumed.
+   * month format (yyyy-MM), for example: `2009-01`.
+   *
+   * The model must always be a Date object, otherwise Angular will throw an error.
+   * Invalid `Date` objects (dates whose `getTime()` is `NaN`) will be rendered as an empty string.
+   * If the model is not set to the first of the month, the next view to model update will set it
+   * to the first of the month.
    *
    * The timezone to be used to read/write the `Date` instance in the model can be defined using
    * {@link ng.directive:ngModelOptions ngModelOptions}. By default, this is the timezone of the browser.
@@ -556,6 +571,8 @@ var inputType = {
    * Text input with number validation and transformation. Sets the `number` validation
    * error if not a valid number.
    *
+   * The model must always be a number, otherwise Angular will throw an error.
+   *
    * @param {string} ngModel Assignable angular expression to data-bind to.
    * @param {string=} name Property name of the form under which the control is published.
    * @param {string=} min Sets the `min` validation error key if the value entered is less than `min`.
@@ -634,6 +651,12 @@ var inputType = {
    * Text input with URL validation. Sets the `url` validation error key if the content is not a
    * valid URL.
    *
+   * <div class="alert alert-warning">
+   * **Note:** `input[url]` uses a regex to validate urls that is derived from the regex
+   * used in Chromium. If you need stricter validation, you can use `ng-pattern` or modify
+   * the built-in validators (see the {@link guide/forms Forms guide})
+   * </div>
+   *
    * @param {string} ngModel Assignable angular expression to data-bind to.
    * @param {string=} name Property name of the form under which the control is published.
    * @param {string=} required Sets `required` validation error key if the value is not entered.
@@ -710,6 +733,12 @@ var inputType = {
    * @description
    * Text input with email validation. Sets the `email` validation error key if not a valid email
    * address.
+   *
+   * <div class="alert alert-warning">
+   * **Note:** `input[email]` uses a regex to validate email addresses that is derived from the regex
+   * used in Chromium. If you need stricter validation (e.g. requiring a top-level domain), you can
+   * use `ng-pattern` or modify the built-in validators (see the {@link guide/forms Forms guide})
+   * </div>
    *
    * @param {string} ngModel Assignable angular expression to data-bind to.
    * @param {string=} name Property name of the form under which the control is published.
@@ -889,19 +918,6 @@ var inputType = {
   'file': noop
 };
 
-function testFlags(validity, flags) {
-  var i, flag;
-  if (flags) {
-    for (i=0; i<flags.length; ++i) {
-      flag = flags[i];
-      if (validity[flag]) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 function stringBasedInputType(ctrl) {
   ctrl.$formatters.push(function(value) {
     return ctrl.$isEmpty(value) ? value : value.toString();
@@ -914,7 +930,6 @@ function textInputType(scope, element, attr, ctrl, $sniffer, $browser) {
 }
 
 function baseInputType(scope, element, attr, ctrl, $sniffer, $browser) {
-  var validity = element.prop(VALIDITY_STATE_PROPERTY);
   var placeholder = element[0].placeholder, noevent = {};
   var type = lowercase(element[0].type);
 
@@ -1048,8 +1063,8 @@ function createDateParser(regexp, mapping) {
       // When a date is JSON'ified to wraps itself inside of an extra
       // set of double quotes. This makes the date parsing code unable
       // to match the date string and parse it as a date.
-      if (iso.charAt(0) == '"' && iso.charAt(iso.length-1) == '"') {
-        iso = iso.substring(1, iso.length-1);
+      if (iso.charAt(0) == '"' && iso.charAt(iso.length - 1) == '"') {
+        iso = iso.substring(1, iso.length - 1);
       }
       if (ISO_DATE_REGEXP.test(iso)) {
         return new Date(iso);
@@ -1351,10 +1366,14 @@ function checkboxInputType(scope, element, attr, ctrl, $sniffer, $browser, $filt
  * @restrict E
  *
  * @description
- * HTML input element control with angular data-binding. Input control follows HTML5 input types
- * and polyfills the HTML5 validation behavior for older browsers.
+ * HTML input element control. When used together with {@link ngModel `ngModel`}, it provides data-binding,
+ * input state control, and validation.
+ * Input control follows HTML5 input types and polyfills the HTML5 validation behavior for older browsers.
  *
- * *NOTE* Not every feature offered is available for all input types.
+ * <div class="alert alert-warning">
+ * **Note:** Not every feature offered is available for all input types.
+ * Specifically, data binding and event handling via `ng-model` is unsupported for `input[file]`.
+ * </div>
  *
  * @param {string} ngModel Assignable angular expression to data-bind to.
  * @param {string=} name Property name of the form under which the control is published.
@@ -1490,19 +1509,25 @@ var VALID_CLASS = 'ng-valid',
  * @name ngModel.NgModelController
  *
  * @property {string} $viewValue Actual string value in the view.
- * @property {*} $modelValue The value in the model, that the control is bound to.
+ * @property {*} $modelValue The value in the model that the control is bound to.
  * @property {Array.<Function>} $parsers Array of functions to execute, as a pipeline, whenever
-       the control reads value from the DOM.  Each function is called, in turn, passing the value
-       through to the next. The last return value is used to populate the model.
-       Used to sanitize / convert the value as well as validation. For validation,
-       the parsers should update the validity state using
-       {@link ngModel.NgModelController#$setValidity $setValidity()},
-       and return `undefined` for invalid values.
+       the control reads value from the DOM. The functions are called in array order, each passing
+       its return value through to the next. The last return value is forwarded to the
+       {@link ngModel.NgModelController#$validators `$validators`} collection.
+
+Parsers are used to sanitize / convert the {@link ngModel.NgModelController#$viewValue
+`$viewValue`}.
+
+Returning `undefined` from a parser means a parse error occurred. In that case,
+no {@link ngModel.NgModelController#$validators `$validators`} will run and the `ngModel`
+will be set to `undefined` unless {@link ngModelOptions `ngModelOptions.allowInvalid`}
+is set to `true`. The parse error is stored in `ngModel.$error.parse`.
 
  *
  * @property {Array.<Function>} $formatters Array of functions to execute, as a pipeline, whenever
-       the model value changes. Each function is called, in turn, passing the value through to the
-       next. Used to format / convert values for display in the control and validation.
+       the model value changes. The functions are called in reverse array order, each passing the value through to the
+       next. The last return value is used as the actual DOM value.
+       Used to format / convert values for display in the control.
  * ```js
  * function formatter(value) {
  *   if (value) {
@@ -1533,8 +1558,9 @@ var VALID_CLASS = 'ng-valid',
  *      is expected to return a promise when it is run during the model validation process. Once the promise
  *      is delivered then the validation status will be set to true when fulfilled and false when rejected.
  *      When the asynchronous validators are triggered, each of the validators will run in parallel and the model
- *      value will only be updated once all validators have been fulfilled. Also, keep in mind that all
- *      asynchronous validators will only run once all synchronous validators have passed.
+ *      value will only be updated once all validators have been fulfilled. As long as an asynchronous validator
+ *      is unfulfilled, its key will be added to the controllers `$pending` property. Also, all asynchronous validators
+ *      will only run once all synchronous validators have passed.
  *
  * Please note that if $http is used then it is important that the server returns a success HTTP response code
  * in order to fulfill the validation and a status level of `4xx` in order to reject the validation.
@@ -1555,9 +1581,6 @@ var VALID_CLASS = 'ng-valid',
  * };
  * ```
  *
- * @param {string} name The name of the validator.
- * @param {Function} validationFn The validation function that will be run.
- *
  * @property {Array.<Function>} $viewChangeListeners Array of functions to execute whenever the
  *     view value has changed. It is called with no arguments, and its return value is ignored.
  *     This can be used in place of additional $watches against the model value.
@@ -1571,6 +1594,7 @@ var VALID_CLASS = 'ng-valid',
  * @property {boolean} $dirty True if user has already interacted with the control.
  * @property {boolean} $valid True if there is no error.
  * @property {boolean} $invalid True if at least one error on the control.
+ * @property {string} $name The name attribute of the control.
  *
  * @description
  *
@@ -1590,7 +1614,7 @@ var VALID_CLASS = 'ng-valid',
  *
  * We are using the {@link ng.service:$sce $sce} service here and include the {@link ngSanitize $sanitize}
  * module to automatically remove "bad" content like inline event listener (e.g. `<span onclick="...">`).
- * However, as we are using `$sce` the model can still decide to to provide unsafe content if it marks
+ * However, as we are using `$sce` the model can still decide to provide unsafe content if it marks
  * that content using the `$sce` service.
  *
  * <example name="NgModelController" module="customControl" deps="angular-sanitize.js">
@@ -1622,7 +1646,7 @@ var VALID_CLASS = 'ng-valid',
 
               // Listen for change events to enable binding
               element.on('blur keyup change', function() {
-                scope.$apply(read);
+                scope.$evalAsync(read);
               });
               read(); // initialize
 
@@ -1777,19 +1801,22 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
    * @name ngModel.NgModelController#$setValidity
    *
    * @description
-   * Change the validity state, and notifies the form.
+   * Change the validity state, and notify the form.
    *
-   * This method can be called within $parsers/$formatters. However, if possible, please use the
-   *        `ngModel.$validators` pipeline which is designed to call this method automatically.
+   * This method can be called within $parsers/$formatters or a custom validation implementation.
+   * However, in most cases it should be sufficient to use the `ngModel.$validators` and
+   * `ngModel.$asyncValidators` collections which will call `$setValidity` automatically.
    *
-   * @param {string} validationErrorKey Name of the validator. the `validationErrorKey` will assign
-   *        to `$error[validationErrorKey]` and `$pending[validationErrorKey]`
-   *        so that it is available for data-binding.
+   * @param {string} validationErrorKey Name of the validator. The `validationErrorKey` will be assigned
+   *        to either `$error[validationErrorKey]` or `$pending[validationErrorKey]`
+   *        (for unfulfilled `$asyncValidators`), so that it is available for data-binding.
    *        The `validationErrorKey` should be in camelCase and will get converted into dash-case
    *        for class name. Example: `myError` will result in `ng-valid-my-error` and `ng-invalid-my-error`
    *        class and can be bound to as  `{{someForm.someControl.$error.myError}}` .
    * @param {boolean} isValid Whether the current state is valid (true), invalid (false), pending (undefined),
-   *                          or skipped (null).
+   *                          or skipped (null). Pending is used for unfulfilled `$asyncValidators`.
+   *                          Skipped is used by Angular when validators do not run because of parse errors and
+   *                          when `$asyncValidators` do not run because any of the `$validators` failed.
    */
   addSetValidityMethod({
     ctrl: this,
@@ -1815,7 +1842,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
    * state (ng-pristine class). A model is considered to be pristine when the model has not been changed
    * from when first compiled within then form.
    */
-  this.$setPristine = function () {
+  this.$setPristine = function() {
     ctrl.$dirty = false;
     ctrl.$pristine = true;
     $animate.removeClass($element, DIRTY_CLASS);
@@ -1884,13 +1911,13 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
    *     angular.module('cancel-update-example', [])
    *
    *     .controller('CancelUpdateController', ['$scope', function($scope) {
-   *       $scope.resetWithCancel = function (e) {
+   *       $scope.resetWithCancel = function(e) {
    *         if (e.keyCode == 27) {
    *           $scope.myForm.myInput1.$rollbackViewValue();
    *           $scope.myValue = '';
    *         }
    *       };
-   *       $scope.resetWithoutCancel = function (e) {
+   *       $scope.resetWithoutCancel = function(e) {
    *         if (e.keyCode == 27) {
    *           $scope.myValue = '';
    *         }
@@ -2069,7 +2096,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
     var parserValid = isUndefined(modelValue) ? undefined : true;
 
     if (parserValid) {
-      for(var i = 0; i < ctrl.$parsers.length; i++) {
+      for (var i = 0; i < ctrl.$parsers.length; i++) {
         modelValue = ctrl.$parsers[i](modelValue);
         if (isUndefined(modelValue)) {
           parserValid = false;
@@ -2110,7 +2137,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
     forEach(ctrl.$viewChangeListeners, function(listener) {
       try {
         listener();
-      } catch(e) {
+      } catch (e) {
         $exceptionHandler(e);
       }
     });
@@ -2213,7 +2240,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
           idx = formatters.length;
 
       var viewValue = modelValue;
-      while(idx--) {
+      while (idx--) {
         viewValue = formatters[idx](viewValue);
       }
       if (ctrl.$viewValue !== viewValue) {
@@ -2234,6 +2261,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  * @name ngModel
  *
  * @element input
+ * @priority 1
  *
  * @description
  * The `ngModel` directive binds an `input`,`select`, `textarea` (or custom form control) to a
@@ -2255,7 +2283,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  *
  * For best practices on using `ngModel`, see:
  *
- *  - [https://github.com/angular/angular.js/wiki/Understanding-Scopes]
+ *  - [Understanding Scopes](https://github.com/angular/angular.js/wiki/Understanding-Scopes)
  *
  * For basic examples, how to use `ngModel`, see:
  *
@@ -2267,7 +2295,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  *    - {@link input[email] email}
  *    - {@link input[url] url}
  *    - {@link input[date] date}
- *    - {@link input[dateTimeLocal] dateTimeLocal}
+ *    - {@link input[datetime-local] datetime-local}
  *    - {@link input[time] time}
  *    - {@link input[month] month}
  *    - {@link input[week] week}
@@ -2278,10 +2306,15 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  * The following CSS classes are added and removed on the associated input/select/textarea element
  * depending on the validity of the model.
  *
- *  - `ng-valid` is set if the model is valid.
- *  - `ng-invalid` is set if the model is invalid.
- *  - `ng-pristine` is set if the model is pristine.
- *  - `ng-dirty` is set if the model is dirty.
+ *  - `ng-valid`: the model is valid
+ *  - `ng-invalid`: the model is invalid
+ *  - `ng-valid-[key]`: for each valid key added by `$setValidity`
+ *  - `ng-invalid-[key]`: for each invalid key added by `$setValidity`
+ *  - `ng-pristine`: the control hasn't been interacted with yet
+ *  - `ng-dirty`: the control has been interacted with
+ *  - `ng-touched`: the control has been blurred
+ *  - `ng-untouched`: the control hasn't been blurred
+ *  - `ng-pending`: any `$asyncValidators` are unfulfilled
  *
  * Keep in mind that ngAnimate can detect each of these classes when added and removed.
  *
@@ -2375,7 +2408,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
          .controller('ExampleController', ['$scope', function($scope) {
            var _name = 'Brian';
            $scope.user = {
-             name: function (newName) {
+             name: function(newName) {
                if (angular.isDefined(newName)) {
                  _name = newName;
                }
@@ -2742,12 +2775,17 @@ var CONSTANT_VALUE_REGEXP = /^(true|false|\d+)$/;
  * @name ngValue
  *
  * @description
- * Binds the given expression to the value of `input[select]` or `input[radio]`, so
- * that when the element is selected, the `ngModel` of that element is set to the
- * bound value.
+ * Binds the given expression to the value of `<option>` or {@link input[radio] `input[radio]`},
+ * so that when the element is selected, the {@link ngModel `ngModel`} of that element is set to
+ * the bound value.
  *
- * `ngValue` is useful when dynamically generating lists of radio buttons using `ng-repeat`, as
- * shown below.
+ * `ngValue` is useful when dynamically generating lists of radio buttons using
+ * {@link ngRepeat `ngRepeat`}, as shown below.
+ *
+ * Likewise, `ngValue` can be used to generate `<option>` elements for
+ * the {@link select `select`} element. In that case however, only strings are supported
+ * for the `value `attribute, so the resulting `ngModel` will always be a string.
+ * Support for `select` models with non-string values is available via `ngOptions`.
  *
  * @element input
  * @param {string=} ngValue angular expression, whose value will be bound to the `value` attribute
@@ -2835,7 +2873,7 @@ var ngValueDirective = function() {
  * `ngModelOptions` has an effect on the element it's declared on and its descendants.
  *
  * @param {Object} ngModelOptions options to apply to the current model. Valid keys are:
- *   - `updateOn`: string specifying which event should be the input bound to. You can set several
+ *   - `updateOn`: string specifying which event should the input be bound to. You can set several
  *     events using an space delimited list. There is a special event called `default` that
  *     matches the default events belonging of the control.
  *   - `debounce`: integer value which contains the debounce model update value in milliseconds. A
@@ -2877,7 +2915,7 @@ var ngValueDirective = function() {
         .controller('ExampleController', ['$scope', function($scope) {
           $scope.user = { name: 'say', data: '' };
 
-          $scope.cancel = function (e) {
+          $scope.cancel = function(e) {
             if (e.keyCode == 27) {
               $scope.userForm.userName.$rollbackViewValue();
             }
@@ -2951,7 +2989,7 @@ var ngValueDirective = function() {
         .controller('ExampleController', ['$scope', function($scope) {
           var _name = 'Brian';
           $scope.user = {
-            name: function (newName) {
+            name: function(newName) {
               return angular.isDefined(newName) ? (_name = newName) : _name;
             }
           };

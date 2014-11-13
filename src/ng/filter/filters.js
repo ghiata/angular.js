@@ -11,6 +11,7 @@
  *
  * @param {number} amount Input to filter.
  * @param {string=} symbol Currency symbol or identifier to be displayed.
+ * @param {number=} fractionSize Number of decimal places to round the amount to.
  * @returns {string} Formatted number.
  *
  *
@@ -26,13 +27,15 @@
        <div ng-controller="ExampleController">
          <input type="number" ng-model="amount"> <br>
          default currency symbol ($): <span id="currency-default">{{amount | currency}}</span><br>
-         custom currency identifier (USD$): <span>{{amount | currency:"USD$"}}</span>
+         custom currency identifier (USD$): <span id="currency-custom">{{amount | currency:"USD$"}}</span>
+         no fractions (0): <span id="currency-no-fractions">{{amount | currency:"USD$":0}}</span>
        </div>
      </file>
      <file name="protractor.js" type="protractor">
        it('should init with 1234.56', function() {
          expect(element(by.id('currency-default')).getText()).toBe('$1,234.56');
-         expect(element(by.binding('amount | currency:"USD$"')).getText()).toBe('USD$1,234.56');
+         expect(element(by.id('currency-custom')).getText()).toBe('USD$1,234.56');
+         expect(element(by.id('currency-no-fractions')).getText()).toBe('USD$1,235');
        });
        it('should update', function() {
          if (browser.params.browser == 'safari') {
@@ -43,7 +46,8 @@
          element(by.model('amount')).clear();
          element(by.model('amount')).sendKeys('-1234');
          expect(element(by.id('currency-default')).getText()).toBe('($1,234.00)');
-         expect(element(by.binding('amount | currency:"USD$"')).getText()).toBe('(USD$1,234.00)');
+         expect(element(by.id('currency-custom')).getText()).toBe('(USD$1,234.00)');
+         expect(element(by.id('currency-no-fractions')).getText()).toBe('(USD$1,234)');
        });
      </file>
    </example>
@@ -51,13 +55,20 @@
 currencyFilter.$inject = ['$locale'];
 function currencyFilter($locale) {
   var formats = $locale.NUMBER_FORMATS;
-  return function(amount, currencySymbol){
-    if (isUndefined(currencySymbol)) currencySymbol = formats.CURRENCY_SYM;
+  return function(amount, currencySymbol, fractionSize) {
+    if (isUndefined(currencySymbol)) {
+      currencySymbol = formats.CURRENCY_SYM;
+    }
+
+    if (isUndefined(fractionSize)) {
+      // TODO: read the default value from the locale file
+      fractionSize = 2;
+    }
 
     // if null or undefined pass it through
     return (amount == null)
         ? amount
-        : formatNumber(amount, formats.PATTERNS[1], formats.GROUP_SEP, formats.DECIMAL_SEP, 2).
+        : formatNumber(amount, formats.PATTERNS[1], formats.GROUP_SEP, formats.DECIMAL_SEP, fractionSize).
             replace(/\u00A4/g, currencySymbol);
   };
 }
@@ -176,7 +187,7 @@ function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
     if (whole.length >= (lgroup + group)) {
       pos = whole.length - lgroup;
       for (i = 0; i < pos; i++) {
-        if ((pos - i)%group === 0 && i !== 0) {
+        if ((pos - i) % group === 0 && i !== 0) {
           formatedText += groupSep;
         }
         formatedText += whole.charAt(i);
@@ -184,14 +195,14 @@ function formatNumber(number, pattern, groupSep, decimalSep, fractionSize) {
     }
 
     for (i = pos; i < whole.length; i++) {
-      if ((whole.length - i)%lgroup === 0 && i !== 0) {
+      if ((whole.length - i) % lgroup === 0 && i !== 0) {
         formatedText += groupSep;
       }
       formatedText += whole.charAt(i);
     }
 
     // format fraction part.
-    while(fraction.length < fractionSize) {
+    while (fraction.length < fractionSize) {
       fraction += '0';
     }
 
@@ -216,7 +227,7 @@ function padNumber(num, digits, trim) {
     num = -num;
   }
   num = '' + num;
-  while(num.length < digits) num = '0' + num;
+  while (num.length < digits) num = '0' + num;
   if (trim)
     num = num.substr(num.length - digits);
   return neg + num;
@@ -229,7 +240,7 @@ function dateGetter(name, size, offset, trim) {
     var value = date['get' + name]();
     if (offset > 0 || value > -offset)
       value += offset;
-    if (value === 0 && offset == -12 ) value = 12;
+    if (value === 0 && offset == -12) value = 12;
     return padNumber(value, size, trim);
   };
 }
@@ -424,10 +435,10 @@ function dateFilter($locale) {
         tzMin = int(match[9] + match[11]);
       }
       dateSetter.call(date, int(match[1]), int(match[2]) - 1, int(match[3]));
-      var h = int(match[4]||0) - tzHour;
-      var m = int(match[5]||0) - tzMin;
-      var s = int(match[6]||0);
-      var ms = Math.round(parseFloat('0.' + (match[7]||0)) * 1000);
+      var h = int(match[4] || 0) - tzHour;
+      var m = int(match[5] || 0) - tzMin;
+      var s = int(match[6] || 0);
+      var ms = Math.round(parseFloat('0.' + (match[7] || 0)) * 1000);
       timeSetter.call(date, h, m, s, ms);
       return date;
     }
@@ -454,7 +465,7 @@ function dateFilter($locale) {
       return date;
     }
 
-    while(format) {
+    while (format) {
       match = DATE_FORMATS_SPLIT.exec(format);
       if (match) {
         parts = concat(parts, match, 1);
@@ -469,7 +480,7 @@ function dateFilter($locale) {
       date = new Date(date.getTime());
       date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
     }
-    forEach(parts, function(value){
+    forEach(parts, function(value) {
       fn = DATE_FORMATS[value];
       text += fn ? fn(date, $locale.DATETIME_FORMATS)
                  : value.replace(/(^'|'$)/g, '').replace(/''/g, "'");
